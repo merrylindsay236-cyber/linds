@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Influencer Program Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="css2_f1Mk.css" rel="stylesheet">
+<script src="chart.umd.min_f1Mk.js"></script>
+<style>
+  :root{
+    --bg:#F7F6F2; --panel:#FFFFFF; --ink:#1B2A2E; --sub:#5B6B6E;
+    --teal:#2B6777; --teal-dim:#BFD6DA; --brass:#B08D57; --rose:#A65B62; --sage:#7A8B6F;
+    --line:#E3E0D7; --radius:10px;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12191B; --panel:#182226; --ink:#EDEFEE; --sub:#9AAAAC;
+      --teal:#5FA3B3; --teal-dim:#2A4147; --line:#2A3538;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12191B; --panel:#182226; --ink:#EDEFEE; --sub:#9AAAAC;
+    --teal:#5FA3B3; --teal-dim:#2A4147; --line:#2A3538;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  header{padding:28px 24px 8px;max-width:1200px;margin:0 auto;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(22px,3.5vw,30px);margin:0 0 4px;}
+  header p{margin:0;color:var(--sub);font-size:14px;}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px 24px 60px;}
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 22px;}
+  .filters select{
+    font:500 13px 'Inter',sans-serif;padding:9px 12px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);min-width:150px;
+  }
+  .reset{font:500 13px 'Inter',sans-serif;padding:9px 14px;border-radius:8px;border:1px solid var(--teal);background:transparent;color:var(--teal);cursor:pointer;}
+  #chartWarning{display:none;background:#F4E3D8;color:#6B4226;border:1px solid #D9B896;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:22px;}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+  .kpi .label{font-size:12px;color:var(--sub);margin-bottom:6px;}
+  .kpi .value{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;}
+  .kpi .value span{font-size:14px;color:var(--sub);font-weight:500;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:820px){.grid{grid-template-columns:1fr;}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;overflow-x:auto;}
+  .card h2{font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 2px;}
+  .card .note{font-size:12px;color:var(--sub);margin:0 0 12px;}
+  .card canvas{max-height:260px;height:260px !important;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px;}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+  th{color:var(--sub);font-weight:500;font-size:12px;}
+  td.num,th.num{text-align:right;}
+  .empty{color:var(--sub);font-size:13px;padding:20px 0;text-align:center;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Influencer Program Performance</h1>
+  <p>60 posts · filter by property, platform, tier, CTA, or creator archetype to see performance</p>
+</header>
+<div class="wrap">
+  <div class="filters">
+    <select id="fProperty"><option value="" selected="selected">All properties</option><option value="Coastal Wellness">Coastal Wellness</option><option value="Family Resort">Family Resort</option><option value="Flagship Luxury">Flagship Luxury</option><option value="Urban">Urban</option></select>
+    <select id="fPlatform"><option value="" selected="selected">All platforms</option><option value="Instagram">Instagram</option><option value="TikTok">TikTok</option></select>
+    <select id="fTier"><option value="" selected="selected">All tiers</option><option value="Macro">Macro</option><option value="Mega">Mega</option><option value="Mid-Tier">Mid-Tier</option></select>
+    <select id="fCTA"><option value="" selected="selected">All CTAs</option><option value="Book Now / Save">Book Now / Save</option><option value="Engagement-bait">Engagement-bait</option><option value="Soft / None">Soft / None</option></select>
+    <select id="fArchetype"><option value="" selected="selected">All archetypes</option><option value="Family">Family</option><option value="Lifestyle">Lifestyle</option><option value="Luxury">Luxury</option><option value="Travel">Travel</option></select>
+    <button class="reset" onclick="resetFilters()">Reset filters</button>
+  </div>
+
+  <div id="chartWarning" style="display: none;">Charts couldn't load — this is usually a network or ad-blocker issue blocking the charting library. Try reloading the page, or checking your network settings if it persists. Numbers and the table below aren't affected.</div>
+
+  <div class="kpis" id="kpis">
+    <div class="kpi"><div class="label">Posts in view</div><div class="value">60</div></div>
+    <div class="kpi"><div class="label">Total spend</div><div class="value">$559,250</div></div>
+    <div class="kpi"><div class="label">Purchase intent rate</div><div class="value">11.6<span>%</span></div></div>
+    <div class="kpi"><div class="label">ER per follower</div><div class="value">0.77<span>%</span></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Purchase intent &amp; product love rate by CTA</h2>
+      <p class="note">Percentage of comments that indicated intent to book or product affinity</p>
+      <canvas id="chartCTA" style="display: block; box-sizing: border-box; height: 260px; width: 531px;" width="531" height="260"></canvas>
+    </div>
+    <div class="card">
+      <h2>Budget share vs. purchase intent, by tier</h2>
+      <p class="note">Where the money goes vs. potential returns</p>
+      <canvas id="chartTier" style="display: block; box-sizing: border-box; height: 260px; width: 531px;" width="531" height="260"></canvas>
+    </div>
+    <div class="card">
+      <h2>Engagement rate: per-view vs. per-follower</h2>
+      <p class="note">Platform view of total engagements relative to views vs. individual creator followings</p>
+      <canvas id="chartPlatform" style="display: block; box-sizing: border-box; height: 260px; width: 531px;" width="531" height="260"></canvas>
+    </div>
+    <div class="card">
+      <h2>Property performance</h2>
+      <p class="note">Pooled rates across filtered posts · darker shading = stronger relative to others in that column</p>
+      <div id="propTable"><table><thead><tr><th>Property</th><th class="num">Posts</th><th class="num">ER (view)</th><th class="num">ER (follower)</th><th class="num">Purchase intent</th><th class="num">Product love</th></tr></thead><tbody><tr><td>Coastal Wellness</td><td class="num">15</td><td class="num" style="background:rgba(43,103,119,0.26);">3.82%</td><td class="num" style="background:rgba(43,103,119,0.32);">0.82%</td><td class="num" style="background:rgba(43,103,119,0.40);">22.7%</td><td class="num" style="background:rgba(43,103,119,0.23);">33%</td></tr><tr><td>Family Resort</td><td class="num">15</td><td class="num" style="background:rgba(43,103,119,0.21);">3.48%</td><td class="num" style="background:rgba(43,103,119,0.40);">0.87%</td><td class="num" style="background:rgba(43,103,119,0.36);">20.5%</td><td class="num" style="background:rgba(43,103,119,0.08);">25%</td></tr><tr><td>Flagship Luxury</td><td class="num">15</td><td class="num" style="background:rgba(43,103,119,0.06);">2.42%</td><td class="num" style="background:rgba(43,103,119,0.32);">0.82%</td><td class="num" style="background:rgba(43,103,119,0.06);">3.7%</td><td class="num" style="background:rgba(43,103,119,0.40);">42.1%</td></tr><tr><td>Urban</td><td class="num">15</td><td class="num" style="background:rgba(43,103,119,0.40);">4.81%</td><td class="num" style="background:rgba(43,103,119,0.06);">0.64%</td><td class="num" style="background:rgba(43,103,119,0.15);">8.6%</td><td class="num" style="background:rgba(43,103,119,0.06);">23.8%</td></tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Content pillar performance</h2>
+      <p class="note">Pooled rates across filtered posts · darker shading = stronger relative to others in that column</p>
+      <div id="pillarTable"><table><thead><tr><th>Pillar</th><th class="num">Posts</th><th class="num">ER (view)</th><th class="num">ER (follower)</th><th class="num">Purchase intent</th><th class="num">Product love</th></tr></thead><tbody><tr><td>Family &amp; Kids</td><td class="num">5</td><td class="num" style="background:rgba(43,103,119,0.18);">3.38%</td><td class="num" style="background:rgba(43,103,119,0.28);">0.47%</td><td class="num" style="background:rgba(43,103,119,0.27);">13.1%</td><td class="num" style="background:rgba(43,103,119,0.06);">19.6%</td></tr><tr><td>Food &amp; Beverage</td><td class="num">13</td><td class="num" style="background:rgba(43,103,119,0.40);">4.68%</td><td class="num" style="background:rgba(43,103,119,0.23);">0.41%</td><td class="num" style="background:rgba(43,103,119,0.06);">5.7%</td><td class="num" style="background:rgba(43,103,119,0.09);">21.7%</td></tr><tr><td>Local Experiences</td><td class="num">8</td><td class="num" style="background:rgba(43,103,119,0.37);">4.51%</td><td class="num" style="background:rgba(43,103,119,0.26);">0.45%</td><td class="num" style="background:rgba(43,103,119,0.37);">16.6%</td><td class="num" style="background:rgba(43,103,119,0.08);">20.7%</td></tr><tr><td>Spa &amp; Wellness</td><td class="num">15</td><td class="num" style="background:rgba(43,103,119,0.06);">2.63%</td><td class="num" style="background:rgba(43,103,119,0.40);">0.58%</td><td class="num" style="background:rgba(43,103,119,0.18);">10%</td><td class="num" style="background:rgba(43,103,119,0.39);">40.4%</td></tr><tr><td>Suite/Room Reveal</td><td class="num">19</td><td class="num" style="background:rgba(43,103,119,0.15);">3.17%</td><td class="num" style="background:rgba(43,103,119,0.06);">0.25%</td><td class="num" style="background:rgba(43,103,119,0.40);">17.5%</td><td class="num" style="background:rgba(43,103,119,0.40);">40.8%</td></tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Hook performance</h2>
+      <p class="note">Pooled rates across filtered posts · darker shading = stronger relative to others in that column</p>
+      <div id="hookTable"><table><thead><tr><th>Hook</th><th class="num">Posts</th><th class="num">ER (view)</th><th class="num">ER (follower)</th><th class="num">Purchase intent</th><th class="num">Product love</th></tr></thead><tbody><tr><td>Aesthetic B-roll</td><td class="num">11</td><td class="num" style="background:rgba(43,103,119,0.06);">2.29%</td><td class="num" style="background:rgba(43,103,119,0.06);">0.16%</td><td class="num" style="background:rgba(43,103,119,0.06);">4.8%</td><td class="num" style="background:rgba(43,103,119,0.38);">37.8%</td></tr><tr><td>Listicle/Tips</td><td class="num">10</td><td class="num" style="background:rgba(43,103,119,0.19);">3.19%</td><td class="num" style="background:rgba(43,103,119,0.40);">0.47%</td><td class="num" style="background:rgba(43,103,119,0.40);">30.5%</td><td class="num" style="background:rgba(43,103,119,0.15);">29.4%</td></tr><tr><td>POV</td><td class="num">19</td><td class="num" style="background:rgba(43,103,119,0.14);">2.84%</td><td class="num" style="background:rgba(43,103,119,0.37);">0.45%</td><td class="num" style="background:rgba(43,103,119,0.09);">6.8%</td><td class="num" style="background:rgba(43,103,119,0.40);">38.4%</td></tr><tr><td>Transformation/Reveal</td><td class="num">20</td><td class="num" style="background:rgba(43,103,119,0.40);">4.66%</td><td class="num" style="background:rgba(43,103,119,0.27);">0.36%</td><td class="num" style="background:rgba(43,103,119,0.15);">11.8%</td><td class="num" style="background:rgba(43,103,119,0.06);">26.1%</td></tr></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [{"creator": "Creator A", "archetype": "Lifestyle", "followers": 8035766, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mega", "cta": "Soft / None", "pillar": "Spa & Wellness", "hook": "POV", "fee": 18340.0, "views": 854937, "engagements": 22613, "comments": 618, "piComments": 24, "loveComments": 234}, {"creator": "Creator A", "archetype": "Lifestyle", "followers": 8035766, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mega", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "POV", "fee": 33590.0, "views": 1095004, "engagements": 21555, "comments": 633, "piComments": 50, "loveComments": 292}, {"creator": "Creator A", "archetype": "Lifestyle", "followers": 8035766, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mega", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 12220.0, "views": 796800, "engagements": 13638, "comments": 268, "piComments": 18, "loveComments": 80}, {"creator": "Creator B", "archetype": "Travel", "followers": 5081265, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Mega", "cta": "Book Now / Save", "pillar": "Local Experiences", "hook": "Transformation/Reveal", "fee": 8880.0, "views": 245781, "engagements": 15564, "comments": 470, "piComments": 99, "loveComments": 108}, {"creator": "Creator B", "archetype": "Travel", "followers": 5081265, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Mega", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "POV", "fee": 6790.0, "views": 151003, "engagements": 7867, "comments": 182, "piComments": 49, "loveComments": 85}, {"creator": "Creator B", "archetype": "Travel", "followers": 5081265, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Mega", "cta": "Soft / None", "pillar": "Local Experiences", "hook": "Listicle/Tips", "fee": 5130.0, "views": 151809, "engagements": 7621, "comments": 236, "piComments": 32, "loveComments": 42}, {"creator": "Creator C", "archetype": "Lifestyle", "followers": 8886566, "property": "Urban", "platform": "TikTok", "tier": "Mega", "cta": "Engagement-bait", "pillar": "Food & Beverage", "hook": "Transformation/Reveal", "fee": 5440.0, "views": 127213, "engagements": 16681, "comments": 1610, "piComments": 9, "loveComments": 330}, {"creator": "Creator C", "archetype": "Lifestyle", "followers": 8886566, "property": "Urban", "platform": "TikTok", "tier": "Mega", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "Transformation/Reveal", "fee": 7120.0, "views": 220146, "engagements": 17165, "comments": 356, "piComments": 14, "loveComments": 65}, {"creator": "Creator C", "archetype": "Lifestyle", "followers": 8886566, "property": "Urban", "platform": "TikTok", "tier": "Mega", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Aesthetic B-roll", "fee": 9120.0, "views": 269156, "engagements": 7809, "comments": 247, "piComments": 11, "loveComments": 71}, {"creator": "Creator D", "archetype": "Luxury", "followers": 8388735, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mega", "cta": "Soft / None", "pillar": "Spa & Wellness", "hook": "POV", "fee": 61880.0, "views": 1494050, "engagements": 46609, "comments": 764, "piComments": 17, "loveComments": 345}, {"creator": "Creator D", "archetype": "Luxury", "followers": 8388735, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mega", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Aesthetic B-roll", "fee": 13160.0, "views": 647762, "engagements": 15661, "comments": 257, "piComments": 9, "loveComments": 113}, {"creator": "Creator D", "archetype": "Luxury", "followers": 8388735, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mega", "cta": "Soft / None", "pillar": "Spa & Wellness", "hook": "Aesthetic B-roll", "fee": 19270.0, "views": 446716, "engagements": 4727, "comments": 131, "piComments": 2, "loveComments": 69}, {"creator": "Creator E", "archetype": "Travel", "followers": 1926208, "property": "Coastal Wellness", "platform": "Instagram", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "POV", "fee": 19870.0, "views": 364611, "engagements": 13992, "comments": 293, "piComments": 117, "loveComments": 144}, {"creator": "Creator E", "archetype": "Travel", "followers": 1926208, "property": "Coastal Wellness", "platform": "Instagram", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "Listicle/Tips", "fee": 41640.0, "views": 761238, "engagements": 23274, "comments": 842, "piComments": 336, "loveComments": 260}, {"creator": "Creator E", "archetype": "Travel", "followers": 1926208, "property": "Coastal Wellness", "platform": "Instagram", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "Listicle/Tips", "fee": 13050.0, "views": 264428, "engagements": 6508, "comments": 176, "piComments": 70, "loveComments": 102}, {"creator": "Creator F", "archetype": "Travel", "followers": 1720935, "property": "Urban", "platform": "TikTok", "tier": "Macro", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 7440.0, "views": 67414, "engagements": 6670, "comments": 134, "piComments": 35, "loveComments": 71}, {"creator": "Creator F", "archetype": "Travel", "followers": 1720935, "property": "Urban", "platform": "TikTok", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Local Experiences", "hook": "Transformation/Reveal", "fee": 15430.0, "views": 168904, "engagements": 11201, "comments": 316, "piComments": 123, "loveComments": 93}, {"creator": "Creator F", "archetype": "Travel", "followers": 1720935, "property": "Urban", "platform": "TikTok", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "POV", "fee": 5850.0, "views": 95644, "engagements": 3131, "comments": 85, "piComments": 14, "loveComments": 23}, {"creator": "Creator G", "archetype": "Lifestyle", "followers": 1813129, "property": "Urban", "platform": "Instagram", "tier": "Macro", "cta": "Soft / None", "pillar": "Food & Beverage", "hook": "Aesthetic B-roll", "fee": 3600.0, "views": 100000, "engagements": 2619, "comments": 90, "piComments": 4, "loveComments": 28}, {"creator": "Creator G", "archetype": "Lifestyle", "followers": 1813129, "property": "Urban", "platform": "Instagram", "tier": "Macro", "cta": "Soft / None", "pillar": "Food & Beverage", "hook": "POV", "fee": 11080.0, "views": 242977, "engagements": 6180, "comments": 212, "piComments": 11, "loveComments": 54}, {"creator": "Creator G", "archetype": "Lifestyle", "followers": 1813129, "property": "Urban", "platform": "Instagram", "tier": "Macro", "cta": "Engagement-bait", "pillar": "Local Experiences", "hook": "POV", "fee": 8070.0, "views": 207936, "engagements": 3062, "comments": 242, "piComments": 3, "loveComments": 36}, {"creator": "Creator H", "archetype": "Family", "followers": 2011725, "property": "Family Resort", "platform": "TikTok", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 6290.0, "views": 68316, "engagements": 6343, "comments": 203, "piComments": 79, "loveComments": 77}, {"creator": "Creator H", "archetype": "Family", "followers": 2011725, "property": "Family Resort", "platform": "TikTok", "tier": "Macro", "cta": "Soft / None", "pillar": "Family & Kids", "hook": "Listicle/Tips", "fee": 10270.0, "views": 126640, "engagements": 4879, "comments": 158, "piComments": 17, "loveComments": 40}, {"creator": "Creator H", "archetype": "Family", "followers": 2011725, "property": "Family Resort", "platform": "TikTok", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 6720.0, "views": 53342, "engagements": 1707, "comments": 46, "piComments": 11, "loveComments": 14}, {"creator": "Creator I", "archetype": "Luxury", "followers": 1298627, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Macro", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 11750.0, "views": 171691, "engagements": 7809, "comments": 149, "piComments": 16, "loveComments": 85}, {"creator": "Creator I", "archetype": "Luxury", "followers": 1298627, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Macro", "cta": "Engagement-bait", "pillar": "Spa & Wellness", "hook": "POV", "fee": 19810.0, "views": 345397, "engagements": 9107, "comments": 1258, "piComments": 17, "loveComments": 521}, {"creator": "Creator I", "archetype": "Luxury", "followers": 1298627, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Macro", "cta": "Engagement-bait", "pillar": "Suite/Room Reveal", "hook": "POV", "fee": 5360.0, "views": 124135, "engagements": 2972, "comments": 262, "piComments": 3, "loveComments": 102}, {"creator": "Creator J", "archetype": "Luxury", "followers": 2601855, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "POV", "fee": 7020.0, "views": 64442, "engagements": 3185, "comments": 83, "piComments": 12, "loveComments": 33}, {"creator": "Creator J", "archetype": "Luxury", "followers": 2601855, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Macro", "cta": "Soft / None", "pillar": "Spa & Wellness", "hook": "POV", "fee": 3450.0, "views": 52542, "engagements": 2275, "comments": 64, "piComments": 6, "loveComments": 33}, {"creator": "Creator J", "archetype": "Luxury", "followers": 2601855, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Macro", "cta": "Soft / None", "pillar": "Spa & Wellness", "hook": "Aesthetic B-roll", "fee": 12740.0, "views": 105883, "engagements": 4076, "comments": 98, "piComments": 7, "loveComments": 36}, {"creator": "Creator K", "archetype": "Family", "followers": 1009280, "property": "Family Resort", "platform": "Instagram", "tier": "Macro", "cta": "Soft / None", "pillar": "Family & Kids", "hook": "POV", "fee": 8420.0, "views": 145198, "engagements": 5706, "comments": 152, "piComments": 16, "loveComments": 23}, {"creator": "Creator K", "archetype": "Family", "followers": 1009280, "property": "Family Resort", "platform": "Instagram", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "Transformation/Reveal", "fee": 6130.0, "views": 229176, "engagements": 4584, "comments": 107, "piComments": 19, "loveComments": 22}, {"creator": "Creator K", "archetype": "Family", "followers": 1009280, "property": "Family Resort", "platform": "Instagram", "tier": "Macro", "cta": "Book Now / Save", "pillar": "Family & Kids", "hook": "Listicle/Tips", "fee": 10010.0, "views": 148088, "engagements": 2506, "comments": 70, "piComments": 17, "loveComments": 14}, {"creator": "Creator L", "archetype": "Luxury", "followers": 2259876, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Macro", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Aesthetic B-roll", "fee": 5750.0, "views": 51198, "engagements": 2573, "comments": 60, "piComments": 6, "loveComments": 23}, {"creator": "Creator L", "archetype": "Luxury", "followers": 2259876, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Macro", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 11340.0, "views": 113563, "engagements": 5689, "comments": 283, "piComments": 23, "loveComments": 82}, {"creator": "Creator L", "archetype": "Luxury", "followers": 2259876, "property": "Coastal Wellness", "platform": "TikTok", "tier": "Macro", "cta": "Engagement-bait", "pillar": "Spa & Wellness", "hook": "POV", "fee": 10870.0, "views": 141680, "engagements": 3584, "comments": 277, "piComments": 3, "loveComments": 113}, {"creator": "Creator M", "archetype": "Travel", "followers": 278249, "property": "Urban", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "Listicle/Tips", "fee": 4790.0, "views": 52157, "engagements": 2190, "comments": 83, "piComments": 33, "loveComments": 21}, {"creator": "Creator M", "archetype": "Travel", "followers": 278249, "property": "Urban", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "Transformation/Reveal", "fee": 3660.0, "views": 47523, "engagements": 1675, "comments": 50, "piComments": 20, "loveComments": 16}, {"creator": "Creator M", "archetype": "Travel", "followers": 278249, "property": "Urban", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "POV", "fee": 18960.0, "views": 74833, "engagements": 2505, "comments": 61, "piComments": 24, "loveComments": 19}, {"creator": "Creator N", "archetype": "Family", "followers": 235881, "property": "Flagship Luxury", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Spa & Wellness", "hook": "Listicle/Tips", "fee": 2100.0, "views": 8395, "engagements": 317, "comments": 7, "piComments": 0, "loveComments": 0}, {"creator": "Creator N", "archetype": "Family", "followers": 235881, "property": "Flagship Luxury", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "Listicle/Tips", "fee": 2210.0, "views": 12718, "engagements": 413, "comments": 8, "piComments": 0, "loveComments": 1}, {"creator": "Creator N", "archetype": "Family", "followers": 235881, "property": "Flagship Luxury", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "POV", "fee": 3950.0, "views": 12689, "engagements": 339, "comments": 11, "piComments": 0, "loveComments": 1}, {"creator": "Creator O", "archetype": "Lifestyle", "followers": 322052, "property": "Coastal Wellness", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Engagement-bait", "pillar": "Local Experiences", "hook": "POV", "fee": 12270.0, "views": 78633, "engagements": 2438, "comments": 245, "piComments": 2, "loveComments": 35}, {"creator": "Creator O", "archetype": "Lifestyle", "followers": 322052, "property": "Coastal Wellness", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Aesthetic B-roll", "fee": 3430.0, "views": 31384, "engagements": 735, "comments": 16, "piComments": 1, "loveComments": 6}, {"creator": "Creator O", "archetype": "Lifestyle", "followers": 322052, "property": "Coastal Wellness", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Engagement-bait", "pillar": "Local Experiences", "hook": "Aesthetic B-roll", "fee": 2710.0, "views": 30440, "engagements": 393, "comments": 29, "piComments": 0, "loveComments": 5}, {"creator": "Creator P", "archetype": "Travel", "followers": 226446, "property": "Family Resort", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Family & Kids", "hook": "Transformation/Reveal", "fee": 2310.0, "views": 11037, "engagements": 544, "comments": 11, "piComments": 2, "loveComments": 2}, {"creator": "Creator P", "archetype": "Travel", "followers": 226446, "property": "Family Resort", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 1190.0, "views": 8187, "engagements": 396, "comments": 12, "piComments": 4, "loveComments": 3}, {"creator": "Creator P", "archetype": "Travel", "followers": 226446, "property": "Family Resort", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 3510.0, "views": 11529, "engagements": 305, "comments": 6, "piComments": 2, "loveComments": 2}, {"creator": "Creator Q", "archetype": "Family", "followers": 346417, "property": "Family Resort", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Family & Kids", "hook": "Listicle/Tips", "fee": 3790.0, "views": 63712, "engagements": 3077, "comments": 113, "piComments": 14, "loveComments": 20}, {"creator": "Creator Q", "archetype": "Family", "followers": 346417, "property": "Family Resort", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 2760.0, "views": 21343, "engagements": 798, "comments": 16, "piComments": 3, "loveComments": 6}, {"creator": "Creator Q", "archetype": "Family", "followers": 346417, "property": "Family Resort", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "Listicle/Tips", "fee": 2770.0, "views": 27031, "engagements": 800, "comments": 17, "piComments": 2, "loveComments": 3}, {"creator": "Creator R", "archetype": "Lifestyle", "followers": 200196, "property": "Urban", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Suite/Room Reveal", "hook": "POV", "fee": 2610.0, "views": 12650, "engagements": 702, "comments": 21, "piComments": 1, "loveComments": 8}, {"creator": "Creator R", "archetype": "Lifestyle", "followers": 200196, "property": "Urban", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Engagement-bait", "pillar": "Local Experiences", "hook": "Transformation/Reveal", "fee": 2450.0, "views": 8737, "engagements": 249, "comments": 20, "piComments": 0, "loveComments": 3}, {"creator": "Creator R", "archetype": "Lifestyle", "followers": 200196, "property": "Urban", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Local Experiences", "hook": "Aesthetic B-roll", "fee": 2450.0, "views": 10740, "engagements": 220, "comments": 5, "piComments": 0, "loveComments": 1}, {"creator": "Creator S", "archetype": "Luxury", "followers": 120000, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "Aesthetic B-roll", "fee": 2380.0, "views": 27033, "engagements": 872, "comments": 24, "piComments": 4, "loveComments": 12}, {"creator": "Creator S", "archetype": "Luxury", "followers": 120000, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "Transformation/Reveal", "fee": 2160.0, "views": 20257, "engagements": 538, "comments": 11, "piComments": 1, "loveComments": 2}, {"creator": "Creator S", "archetype": "Luxury", "followers": 120000, "property": "Flagship Luxury", "platform": "Instagram", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Spa & Wellness", "hook": "Aesthetic B-roll", "fee": 6650.0, "views": 47678, "engagements": 727, "comments": 16, "piComments": 3, "loveComments": 4}, {"creator": "Creator T", "archetype": "Travel", "followers": 172907, "property": "Family Resort", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Suite/Room Reveal", "hook": "Transformation/Reveal", "fee": 3160.0, "views": 8444, "engagements": 443, "comments": 14, "piComments": 4, "loveComments": 6}, {"creator": "Creator T", "archetype": "Travel", "followers": 172907, "property": "Family Resort", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Soft / None", "pillar": "Food & Beverage", "hook": "Transformation/Reveal", "fee": 3280.0, "views": 15724, "engagements": 582, "comments": 11, "piComments": 2, "loveComments": 2}, {"creator": "Creator T", "archetype": "Travel", "followers": 172907, "property": "Family Resort", "platform": "TikTok", "tier": "Mid-Tier", "cta": "Book Now / Save", "pillar": "Food & Beverage", "hook": "POV", "fee": 800.0, "views": 5192, "engagements": 185, "comments": 4, "piComments": 1, "loveComments": 1}];
+
+const sel = {
+  Property: document.getElementById('fProperty'),
+  Platform: document.getElementById('fPlatform'),
+  Tier: document.getElementById('fTier'),
+  CTA: document.getElementById('fCTA'),
+  Archetype: document.getElementById('fArchetype'),
+};
+const keyMap = {Property:'property', Platform:'platform', Tier:'tier', CTA:'cta', Archetype:'archetype'};
+
+function uniq(arr, k){ return [...new Set(arr.map(d=>d[k]))].sort(); }
+for(const label in sel){
+  uniq(DATA, keyMap[label]).forEach(v=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=v; sel[label].appendChild(o);
+  });
+  sel[label].addEventListener('change', render);
+}
+function resetFilters(){ for(const k in sel) sel[k].value=''; render(); }
+
+function filtered(){
+  return DATA.filter(d =>
+    (!sel.Property.value || d.property===sel.Property.value) &&
+    (!sel.Platform.value || d.platform===sel.Platform.value) &&
+    (!sel.Tier.value || d.tier===sel.Tier.value) &&
+    (!sel.CTA.value || d.cta===sel.CTA.value) &&
+    (!sel.Archetype.value || d.archetype===sel.Archetype.value)
+  );
+}
+function sum(arr, f){ return arr.reduce((s,d)=>s+f(d),0); }
+function fmt(n,d=1){ return n.toLocaleString(undefined,{maximumFractionDigits:d}); }
+// Shades a table cell from pale to saturated teal based on where `v` falls within `values` (its column, min-to-max)
+function heat(values, v){
+  const min = Math.min(...values), max = Math.max(...values);
+  const t = max > min ? (v - min) / (max - min) : 0.5;
+  const alpha = (0.06 + t * 0.34).toFixed(2);
+  return `background:rgba(43,103,119,${alpha});`;
+}
+
+// Pooled rate: SUM(numerator) / SUM(denominator) * 100
+function pooledRate(rows, numF, denF){
+  const den = sum(rows, denF);
+  return den ? sum(rows, numF) / den * 100 : 0;
+}
+// Sum of each unique creator's follower count, counted once regardless of how many posts they have in `rows`
+function uniqueFollowerSum(rows){
+  const seen = new Map();
+  rows.forEach(d => { if(!seen.has(d.creator)) seen.set(d.creator, d.followers); });
+  return [...seen.values()].reduce((s,v)=>s+v,0);
+}
+// ER per follower, pooled: SUM(engagements) / SUM(unique creator followers) * 100
+function erFollowerPooled(rows){
+  const followerSum = uniqueFollowerSum(rows);
+  return followerSum ? sum(rows, d=>d.engagements) / followerSum * 100 : 0;
+}
+
+const palette = ['#2B6777','#B08D57','#A65B62','#7A8B6F','#8E7CC3'];
+let charts = {};
+function upsertChart(id, config){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), config);
+}
+
+function render(){
+  const rows = filtered();
+  const kpis = document.getElementById('kpis');
+  if(!rows.length){
+    kpis.innerHTML = '<div class="empty" style="grid-column:1/-1">No posts match this filter combination.</div>';
+    document.getElementById('propTable').innerHTML = '';
+    document.getElementById('pillarTable').innerHTML = '';
+    document.getElementById('hookTable').innerHTML = '';
+    ['chartCTA','chartTier','chartPlatform'].forEach(id=>{ if(charts[id]){charts[id].destroy(); charts[id]=null;} });
+    return;
+  }
+
+  const banner = document.getElementById('chartWarning');
+  banner.style.display = (typeof Chart === 'undefined') ? 'block' : 'none';
+
+  const totalSpend = sum(rows,d=>d.fee);
+  const piRate = pooledRate(rows, d=>d.piComments, d=>d.comments);
+  const erFollower = erFollowerPooled(rows);
+  const erView = pooledRate(rows, d=>d.engagements, d=>d.views);
+
+  kpis.innerHTML = `
+    <div class="kpi"><div class="label">Posts in view</div><div class="value">${rows.length}</div></div>
+    <div class="kpi"><div class="label">Total spend</div><div class="value">$${fmt(totalSpend,0)}</div></div>
+    <div class="kpi"><div class="label">Purchase intent rate</div><div class="value">${fmt(piRate)}<span>%</span></div></div>
+    <div class="kpi"><div class="label">ER per follower</div><div class="value">${fmt(erFollower,2)}<span>%</span></div></div>
+  `;
+
+  // Performance tables (Property, Pillar, Hook) — shared builder with color-coded cells
+  function buildPerfTable(containerId, groupField, groupLabel){
+    const groups = uniq(rows, groupField);
+    const metrics = groups.map(g=>{
+      const r = rows.filter(d=>d[groupField]===g);
+      return {
+        label: g, count: r.length,
+        erView: pooledRate(r,d=>d.engagements,d=>d.views),
+        erFollower: erFollowerPooled(r),
+        pi: pooledRate(r,d=>d.piComments,d=>d.comments),
+        love: pooledRate(r,d=>d.loveComments,d=>d.comments),
+      };
+    });
+    const cols = [['erView',2],['erFollower',2],['pi',1],['love',1]];
+    const ranges = {};
+    cols.forEach(([c])=> ranges[c] = metrics.map(m=>m[c]));
+    let html = `<table><thead><tr><th>${groupLabel}</th><th class="num">Posts</th><th class="num">ER (view)</th><th class="num">ER (follower)</th><th class="num">Purchase intent</th><th class="num">Product love</th></tr></thead><tbody>`;
+    metrics.forEach(m=>{
+      html += `<tr><td>${m.label}</td><td class="num">${m.count}</td>`;
+      cols.forEach(([c,digits])=>{
+        html += `<td class="num" style="${heat(ranges[c], m[c])}">${fmt(m[c],digits)}%</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById(containerId).innerHTML = html;
+  }
+  buildPerfTable('propTable', 'property', 'Property');
+  buildPerfTable('pillarTable', 'pillar', 'Pillar');
+  buildPerfTable('hookTable', 'hook', 'Hook');
+
+  if(typeof Chart === 'undefined') return;
+
+  try{
+  // CTA chart: purchase intent + product love
+  const ctas = uniq(rows,'cta');
+  upsertChart('chartCTA', {
+    type:'bar',
+    data:{ labels:ctas, datasets:[
+      { label:'Purchase intent rate (%)', data:ctas.map(c=>pooledRate(rows.filter(d=>d.cta===c), d=>d.piComments, d=>d.comments)), backgroundColor: palette[0], borderRadius:5 },
+      { label:'Product love rate (%)', data:ctas.map(c=>pooledRate(rows.filter(d=>d.cta===c), d=>d.loveComments, d=>d.comments)), backgroundColor: palette[3], borderRadius:5 },
+    ]},
+    options:{ maintainAspectRatio:false, scales:{y:{beginAtZero:true}} }
+  });
+
+  // Tier chart: spend share vs PI rate
+  const tiers = uniq(rows,'tier');
+  const tierSpend = tiers.map(t=> sum(rows.filter(d=>d.tier===t), d=>d.fee) / totalSpend * 100 );
+  const tierPI = tiers.map(t=> pooledRate(rows.filter(d=>d.tier===t), d=>d.piComments, d=>d.comments));
+  upsertChart('chartTier', {
+    type:'bar',
+    data:{ labels:tiers, datasets:[
+      {label:'Share of spend (%)', data:tierSpend, backgroundColor:palette[1], borderRadius:5},
+      {label:'Purchase intent rate (%)', data:tierPI, backgroundColor:palette[0], borderRadius:5},
+    ]},
+    options:{ maintainAspectRatio:false, scales:{y:{beginAtZero:true}} }
+  });
+
+  // Platform chart: ER view vs follower (both pooled)
+  const plats = uniq(rows,'platform');
+  upsertChart('chartPlatform', {
+    type:'bar',
+    data:{ labels:plats, datasets:[
+      {label:'ER per view (%)', data:plats.map(p=>pooledRate(rows.filter(d=>d.platform===p), d=>d.engagements, d=>d.views)), backgroundColor:palette[0], borderRadius:5},
+      {label:'ER per follower (%)', data:plats.map(p=>erFollowerPooled(rows.filter(d=>d.platform===p))), backgroundColor:palette[2], borderRadius:5},
+    ]},
+    options:{ maintainAspectRatio:false, scales:{y:{beginAtZero:true}} }
+  });
+
+  } catch(err){
+    console.error('Chart rendering failed:', err);
+    banner.style.display = 'block';
+    banner.textContent = 'Charts failed to render — see browser console for details. Table and totals above are unaffected.';
+  }
+}
+
+render();
+</script>
+
+
+</body></html>
